@@ -1,30 +1,34 @@
 import { useState } from "react";
-import { View, TextInput, Button, StyleSheet } from "react-native";
+import { View, TextInput, Button, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/StackNavigator'; // Ajusta si es otra ruta
 import { auth } from "../../config/firebaseConfig";
 
-type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
-
-interface Props {
-  navigation: LoginScreenNavigationProp;
-}
-
-export default function LoginScreen({ navigation }: Props) {
+export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Por favor completa todos los campos.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigation.navigate("Home"); // O la pantalla que tengas después del login
-    } catch (error) {
-      if (error instanceof Error) {
-        alert("Error: " + error.message);
-      } else {
-        alert("Ocurrió un error desconocido.");
+      // 🔐 Ya no navegamos a 'Home'; App.tsx lo hace automáticamente cuando detecta que hay usuario.
+    } catch (error: any) {
+      let message = "Error al iniciar sesión.";
+      if (error.code === "auth/user-not-found") {
+        message = "Usuario no encontrado.";
+      } else if (error.code === "auth/wrong-password") {
+        message = "Contraseña incorrecta.";
       }
+      Alert.alert("Error", message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,6 +39,8 @@ export default function LoginScreen({ navigation }: Props) {
         value={email}
         onChangeText={setEmail}
         style={styles.input}
+        autoCapitalize="none"
+        keyboardType="email-address"
       />
       <TextInput
         placeholder="Contraseña"
@@ -43,12 +49,16 @@ export default function LoginScreen({ navigation }: Props) {
         secureTextEntry
         style={styles.input}
       />
-      <Button title="Iniciar Sesión" onPress={handleLogin} />
+      {loading ? (
+        <ActivityIndicator size="large" color="#000" />
+      ) : (
+        <Button title="Iniciar Sesión" onPress={handleLogin} />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20 },
-  input: { borderBottomWidth: 1, marginBottom: 15 },
+  container: { flex: 1, justifyContent: "center", padding: 20 },
+  input: { borderBottomWidth: 1, marginBottom: 15, padding: 8 },
 });

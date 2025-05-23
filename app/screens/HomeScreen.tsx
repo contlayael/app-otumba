@@ -12,7 +12,9 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/StackNavigator";
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   const { width } = Dimensions.get("window");
 
   return (

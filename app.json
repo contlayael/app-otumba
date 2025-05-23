@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "cerca-de-ti-otumba",
+    "name": "Cerca de Ti Otumba",
     "slug": "cerca-de-ti-otumba",
     "version": "1.0.0",
+    "entryPoint": "./App.tsx",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,7 +19,13 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "versionCode": 1,
+        "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyB8GhV5TQLDfencj7Tne0AkVCxSvI0v0fI"
+        }
+      }
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.cercadetiotumba"
