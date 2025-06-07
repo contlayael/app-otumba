@@ -1,4 +1,3 @@
-// app/screens/HomeScreen.tsx (VERSIÓN ANTERIOR RESTAURADA + BOTÓN DE AUTENTICACIÓN)
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -13,11 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import Carousel from "react-native-reanimated-carousel";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/RootStackParamList";
-import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { auth } from '../../config/firebaseConfig';
-import { Ionicons } from '@expo/vector-icons';
 
-// Datos de prueba para promociones (puedes cargarlos desde Firestore en el futuro)
 const promotions = [
   {
     id: "comida-1",
@@ -42,44 +37,13 @@ const promotions = [
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Home'>>();
   const { width } = Dimensions.get("window");
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      console.log("Sesión cerrada exitosamente.");
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-      alert("Error al cerrar sesión. Inténtalo de nuevo.");
-    }
-  };
 
   return (
     <ScrollView style={styles.scrollViewContainer}>
-      <View style={styles.headerContainer}>
+      <View style={styles.headerContentContainer}>
         <Text style={styles.title}>
           Descubre lo mejor de Otumba en un solo lugar
         </Text>
-
-        {/* Botón de Autenticación/Cerrar Sesión */}
-        {currentUser ? (
-          <TouchableOpacity style={styles.authButton} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color="#fff" />
-            <Text style={styles.authButtonText}>Cerrar Sesión</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={styles.authButton} onPress={() => navigation.navigate('Login')}>
-            <Ionicons name="person-circle-outline" size={20} color="#fff" />
-            <Text style={styles.authButtonText}>Iniciar Sesión / Registrarse</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       <Text style={styles.label}>🎉 Promociones</Text>
@@ -131,11 +95,11 @@ const styles = StyleSheet.create({
   scrollViewContainer: {
     flex: 1,
     backgroundColor: "#f5f5f5",
-    paddingBottom: 20, // Añadido para asegurar espacio al final
+    paddingBottom: 20,
   },
-  headerContainer: {
-    padding: 20,
-    paddingTop: 40,
+  headerContentContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
     backgroundColor: "#fff",
     marginBottom: 10,
     alignItems: 'center',
@@ -175,12 +139,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#555",
   },
-  container: { // Este estilo ya no se usa directamente para el contenedor principal, ahora es scrollViewContainer
-    // flex: 1,
-    padding: 20,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-  },
   title: {
     fontSize: 22,
     fontWeight: "bold",
@@ -216,27 +174,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  authButton: {
-    backgroundColor: '#007bff',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-    position: 'absolute',
-    top: 40,
-    right: 20,
-  },
-  authButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginLeft: 5,
   },
 });
