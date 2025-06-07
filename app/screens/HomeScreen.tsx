@@ -1,3 +1,5 @@
+// app/screens/HomeScreen.tsx (VERSIÓN ANTERIOR RESTAURADA + BOTÓN DE AUTENTICACIÓN)
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -5,23 +7,80 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Carousel from "react-native-reanimated-carousel";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation/StackNavigator";
+import { RootStackParamList } from "../navigation/RootStackParamList";
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { auth } from '../../config/firebaseConfig';
+import { Ionicons } from '@expo/vector-icons';
+
+// Datos de prueba para promociones (puedes cargarlos desde Firestore en el futuro)
+const promotions = [
+  {
+    id: "comida-1",
+    title: "Tacos “El Güero”",
+    image: require("../../assets/promo1.jpg"),
+    description: "2x1 en tacos los martes 🌮",
+  },
+  {
+    id: "papeleria-1",
+    title: "Papelería Lupita",
+    image: require("../../assets/promo2.jpg"),
+    description: "10% de descuento en útiles escolares ✏️",
+  },
+  {
+    id: "estetica-1",
+    title: "Estética Rosy",
+    image: require("../../assets/promo3.jpg"),
+    description: "Corte y peinado por $100 💇‍♀️",
+  },
+];
 
 export default function HomeScreen() {
-  
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Home'>>();
   const { width } = Dimensions.get("window");
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      console.log("Sesión cerrada exitosamente.");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      alert("Error al cerrar sesión. Inténtalo de nuevo.");
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
-        Descubre lo mejor de Otumba en un solo lugar
-      </Text>
+    <ScrollView style={styles.scrollViewContainer}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>
+          Descubre lo mejor de Otumba en un solo lugar
+        </Text>
+
+        {/* Botón de Autenticación/Cerrar Sesión */}
+        {currentUser ? (
+          <TouchableOpacity style={styles.authButton} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={20} color="#fff" />
+            <Text style={styles.authButtonText}>Cerrar Sesión</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.authButton} onPress={() => navigation.navigate('Login')}>
+            <Ionicons name="person-circle-outline" size={20} color="#fff" />
+            <Text style={styles.authButtonText}>Iniciar Sesión / Registrarse</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       <Text style={styles.label}>🎉 Promociones</Text>
 
@@ -49,7 +108,7 @@ export default function HomeScreen() {
       />
 
       <Image
-        source={require("../../assets/otumba-banner.jpg")} // asegúrate de tener esta imagen en /assets
+        source={require("../../assets/otumba-banner.jpg")}
         style={styles.banner}
         resizeMode="cover"
       />
@@ -64,23 +123,42 @@ export default function HomeScreen() {
       >
         <Text style={styles.buttonText}>Ver categorías</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  //Carousel
+  scrollViewContainer: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+    paddingBottom: 20, // Añadido para asegurar espacio al final
+  },
+  headerContainer: {
+    padding: 20,
+    paddingTop: 40,
+    backgroundColor: "#fff",
+    marginBottom: 10,
+    alignItems: 'center',
+  },
   label: {
     fontSize: 18,
     fontWeight: "bold",
     marginTop: 20,
     marginBottom: 10,
+    paddingHorizontal: 20,
   },
   promoCard: {
     borderRadius: 10,
     overflow: "hidden",
     backgroundColor: "#fff",
     paddingBottom: 10,
+    marginHorizontal: 10,
+    width: Dimensions.get("window").width - 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   promoImage: {
     width: "100%",
@@ -97,9 +175,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#555",
   },
-
-  container: {
-    flex: 1,
+  container: { // Este estilo ya no se usa directamente para el contenedor principal, ahora es scrollViewContainer
+    // flex: 1,
     padding: 20,
     backgroundColor: "#fff",
     justifyContent: "center",
@@ -109,18 +186,22 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 15,
+    color: '#333',
   },
   banner: {
-    width: "100%",
+    width: "90%",
     height: 200,
     borderRadius: 10,
     marginBottom: 15,
+    alignSelf: 'center',
+    marginTop: 20,
   },
   subtitle: {
     fontSize: 16,
     textAlign: "center",
     marginBottom: 25,
     color: "#555",
+    paddingHorizontal: 20,
   },
   button: {
     backgroundColor: "#339933",
@@ -129,31 +210,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     width: "70%",
+    marginBottom: 30,
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
+  authButton: {
+    backgroundColor: '#007bff',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+    position: 'absolute',
+    top: 40,
+    right: 20,
+  },
+  authButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
 });
-
-const promotions = [
-  {
-    id: "comida-1",
-    title: "Tacos “El Güero”",
-    image: require("../../assets/promo1.jpg"),
-    description: "2x1 en tacos los martes 🌮",
-  },
-  {
-    id: "comida-2",
-    title: "Papelería Lupita",
-    image: require("../../assets/promo2.jpg"),
-    description: "10% de descuento en útiles escolares ✏️",
-  },
-  {
-    id: "comida-1",
-    title: "Estética Rosy",
-    image: require("../../assets/promo3.jpg"),
-    description: "Corte y peinado por $100 💇‍♀️",
-  },
-];

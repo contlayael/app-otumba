@@ -10,7 +10,7 @@ import {
   Image,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../navigation/StackNavigator";
+import { RootStackParamList } from "../navigation/RootStackParamList";
 import { businessesData } from "../../data/businesses";
 import { reviewsData } from "../../data/reviews";
 import MapView, { Marker } from "react-native-maps";
